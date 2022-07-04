@@ -23,7 +23,12 @@ export async function ensureAuthenticated(
   const [, token] = authHeader.split(" ");
 
   try {
-    const { sub: user_id } = verify(token, authConfig.jwt.secret) as IPayload;
+    let secret = authConfig.jwt.secret
+    if (!secret) {
+      secret = 'senhasupersecreta123'
+    }
+
+    const { sub: user_id } = verify(token, secret) as IPayload;
 
     request.user = {
       id: user_id,

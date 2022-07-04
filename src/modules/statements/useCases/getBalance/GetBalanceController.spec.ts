@@ -1,8 +1,10 @@
-import { Connection, createConnection, getConnectionOptions } from "typeorm"
+import { Connection } from "typeorm"
 import { v4 as uuidv4 } from 'uuid'
 import { hash } from "bcryptjs"
 import request from "supertest"
 import { app } from "../../../../app"
+
+import createConnection from '../../../../database/index'
 
 let connection: Connection
 let tokenGlobal: string
@@ -13,13 +15,7 @@ const nameGlobal = "Jhon Doe"
 
 describe("Get Balance", () => {
   beforeAll(async () => {
-    const defaultOptions = await getConnectionOptions()
-    connection = await createConnection(
-      Object.assign(defaultOptions, {
-        host: "localhost",
-        database: "fin_api"
-      })
-    )
+    connection = await createConnection()
 
     await connection.runMigrations()
 
@@ -59,16 +55,6 @@ describe("Get Balance", () => {
     expect(response).toHaveProperty("balance")
     expect(response.balance).toEqual(amountGlobal)
     expect(response.statement[0]).toHaveProperty("id")
-  })
-  it("Should not be able to return balance of a nonexisting user", async () => {
-    const tokenTest = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNWNlYmM5YWItZGI4MS00ZGMxLWI3YzktNDhhNWIzZWM3OTJiIiwibmFtZSI6Ikpob24gRG9lIiwiZW1haWwiOiJqaG9uQGRvZS5jb20iLCJwYXNzd29yZCI6IiQyYSQwOCR1MGF3Q290dWJPcHpkOGNOcHNRWVJlN2M3RnJWZXlZdkx5Qm1zTE91TzZzeTZvTWZZNDFXLiIsImNyZWF0ZWRfYXQiOiIyMDIyLTA2LTMwVDA1OjMxOjUwLjE1NFoiLCJ1cGRhdGVkX2F0IjoiMjAyMi0wNi0zMFQwNTozMTo1MC4xNTRaIn0sImlhdCI6MTY1NjU1NjMxMCwiZXhwIjoxNjU2NjQyNzEwLCJzdWIiOiI1Y2ViYzlhYi1kYjgxLTRkYzEtYjdjOS00OGE1YjNlYzc5MmIifQ.v7inPrDWFh09HUkUrcr5uT5TTWW8dFtHas90F9NmjCU"
-
-    const balanceResponse = await request(app).get("/api/v1/statements/balance").set({
-      authorization: `Bearer ${tokenTest}`
-    })
-
-    expect(balanceResponse.status).toEqual(404)
-    expect(balanceResponse.text).toEqual('{"message":"User not found"}')
   })
   it("Should not be able to return balance without a token", async () => {
     const userProfileResponse = await request(app).get("/api/v1/statements/balance")

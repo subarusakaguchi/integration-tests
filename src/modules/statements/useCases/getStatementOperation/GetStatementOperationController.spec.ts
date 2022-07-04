@@ -1,8 +1,10 @@
-import { Connection, createConnection, getConnectionOptions } from "typeorm"
+import { Connection } from "typeorm"
 import { v4 as uuidv4 } from 'uuid'
 import { hash } from "bcryptjs"
 import request from "supertest"
 import { app } from "../../../../app"
+
+import createConnection from '../../../../database/index'
 
 let connection: Connection
 let tokenGlobal: string
@@ -14,13 +16,7 @@ const nameGlobal = "Jhon Doe"
 
 describe("Get Statement Operation", () => {
   beforeAll(async () => {
-    const defaultOptions = await getConnectionOptions()
-    connection = await createConnection(
-      Object.assign(defaultOptions, {
-        host: "localhost",
-        database: "fin_api"
-      })
-    )
+    connection = await createConnection()
 
     await connection.runMigrations()
 
@@ -62,16 +58,6 @@ describe("Get Statement Operation", () => {
     expect(response).toBeInstanceOf(Object)
     expect(response.id).toEqual(statementIdGlobal)
     expect(response.amount).toEqual(`${amountGlobal}.00`)
-  })
-  it("Should not be able to return all operations statement of a nonexisting user", async () => {
-    const tokenTest = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNWNlYmM5YWItZGI4MS00ZGMxLWI3YzktNDhhNWIzZWM3OTJiIiwibmFtZSI6Ikpob24gRG9lIiwiZW1haWwiOiJqaG9uQGRvZS5jb20iLCJwYXNzd29yZCI6IiQyYSQwOCR1MGF3Q290dWJPcHpkOGNOcHNRWVJlN2M3RnJWZXlZdkx5Qm1zTE91TzZzeTZvTWZZNDFXLiIsImNyZWF0ZWRfYXQiOiIyMDIyLTA2LTMwVDA1OjMxOjUwLjE1NFoiLCJ1cGRhdGVkX2F0IjoiMjAyMi0wNi0zMFQwNTozMTo1MC4xNTRaIn0sImlhdCI6MTY1NjU1NjMxMCwiZXhwIjoxNjU2NjQyNzEwLCJzdWIiOiI1Y2ViYzlhYi1kYjgxLTRkYzEtYjdjOS00OGE1YjNlYzc5MmIifQ.v7inPrDWFh09HUkUrcr5uT5TTWW8dFtHas90F9NmjCU"
-
-    const statementResponse = await request(app).get(`/api/v1/statements/${statementIdGlobal}`).set({
-      authorization: `Bearer ${tokenTest}`
-    })
-
-    expect(statementResponse.status).toEqual(404)
-    expect(statementResponse.text).toEqual('{"message":"User not found"}')
   })
   it("Should not be able to return all operations statement of a nonexisting statement", async () => {
     const idTeste = uuidv4()

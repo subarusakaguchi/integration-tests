@@ -1,9 +1,11 @@
-import { Connection, createConnection, getConnectionOptions } from "typeorm"
+import { Connection } from "typeorm"
 import { User } from "../../entities/User"
 import { v4 as uuidv4 } from 'uuid'
 import { hash } from "bcryptjs"
 import request from "supertest"
 import { app } from "../../../../app"
+
+import createConnection from '../../../../database/index'
 
 let connection: Connection
 let userGlobal: User
@@ -13,13 +15,7 @@ const nameGlobal = "Jhon Doe"
 
 describe("Authenticate User", () => {
   beforeAll(async () => {
-    const defaultOptions = await getConnectionOptions()
-    connection = await createConnection(
-      Object.assign(defaultOptions, {
-        host: "localhost",
-        database: "fin_api"
-      })
-    )
+    connection = await createConnection()
 
     await connection.runMigrations()
 
